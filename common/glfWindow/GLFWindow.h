@@ -21,14 +21,59 @@
 // glfw framework
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <vector>
+#include <chrono>
+#include <fstream>
 
 /*! \namespace osc - Optix Siggraph Course */
 namespace osc {
   using namespace gdt;
 
+  struct FramePerformanceCounter {
+    int frameCount = 0;
+    int maxFrames;
+    std::vector<std::chrono::microseconds> frameTimes;
+    std::chrono::steady_clock::time_point begin, end;
+    std::string filename;
+    void init(int maxFrames, std::string filename)
+    {
+      frameTimes.reserve(maxFrames);
+      this->maxFrames = maxFrames;
+      this->filename = filename;
+    }
+
+    void startFrameTiming()
+    {
+      begin = std::chrono::steady_clock::now();
+    }
+
+    void endFrameTiming()
+    {
+      end = std::chrono::steady_clock::now();
+      std::chrono::microseconds currentFrameTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+      frameTimes.emplace_back(currentFrameTime);
+      ++frameCount;
+
+      if (frameCount == maxFrames)
+      {
+        std::ofstream outputFile(filename);
+        uint32_t averageFrameTime = 0;
+        for (const auto& ft : frameTimes)
+        {
+          averageFrameTime += ft.count();
+          outputFile << ft.count()  << '\n';
+        }
+        averageFrameTime /= frameTimes.size();
+        outputFile << averageFrameTime << '\n';
+        outputFile.close();
+        throw std::exception();
+      }
+    }
+
+  };
 
   struct GLFWindow {
-    GLFWindow(const std::string &title);
+    GLFWindow(const std::string &title, int w, int h);
     ~GLFWindow();
 
     /*! put pixels on the screen ... */
@@ -71,6 +116,9 @@ namespace osc {
 
     /*! the glfw window handle */
     GLFWwindow *handle { nullptr };
+    std::string title;
+
+    FramePerformanceCounter counter;
   };
 
 
@@ -279,8 +327,10 @@ namespace osc {
                     const vec3f &camera_from,
                     const vec3f &camera_at,
                     const vec3f &camera_up,
-                    const float worldScale)
-      : GLFWindow(title),
+                    const float worldScale,
+                    const int width,
+                    const int height)
+      : GLFWindow(title, width, height),
         cameraFrame(worldScale)
     {
       cameraFrame.setOrientation(camera_from,camera_at,camera_up);

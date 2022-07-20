@@ -16,7 +16,9 @@
 
 find_package(OpenGL REQUIRED)
 
-include_directories(${OptiX_INCLUDE})
+include_directories(${OptiX_INCLUDE}
+  ${PROJECT_SOURCE_DIR}/build/common/3rdParty/ptex/build/src/pte
+)
 
 cuda_compile_and_embed(embedded_ptx_code devicePrograms.cu)
 
@@ -34,6 +36,7 @@ add_executable(ex07_firstRealModel
 
 target_link_libraries(ex07_firstRealModel
   gdt
+  ${PROJECT_SOURCE_DIR}/build/common/3rdParty/ptex/build/src/ptex/Release/Ptex.lib
   # optix dependencies, for rendering
   ${optix_LIBRARY}
   ${CUDA_LIBRARIES}

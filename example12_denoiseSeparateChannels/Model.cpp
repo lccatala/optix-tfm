@@ -21,6 +21,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "3rdParty/stb_image.h"
 
+#include "3rdParty/ptex/src/ptex/Ptexture.h"
+
 //std
 #include <set>
 
@@ -84,17 +86,22 @@ namespace osc {
     return newID;
   }
 
+
+  int loadTexturePtex(Model* model,
+                      std::map<std::string, int>& knownTextures,
+                      const std::string& inFileName,
+                      const std::string& modelPath)
+  {
+    return -1;
+  }
   /*! load a texture (if not already loaded), and return its ID in the
       model's textures[] vector. Textures that could not get loaded
       return -1 */
-  int loadTexture(Model *model,
-                  std::map<std::string,int> &knownTextures,
-                  const std::string &inFileName,
-                  const std::string &modelPath)
+  int loadTextureImage(Model *model,
+                       std::map<std::string,int> &knownTextures,
+                       const std::string &inFileName,
+                       const std::string &modelPath)
   {
-    if (inFileName == "")
-      return -1;
-    
     if (knownTextures.find(inFileName) != knownTextures.end())
       return knownTextures[inFileName];
 
@@ -137,6 +144,24 @@ namespace osc {
     return textureID;
   }
   
+  int loadTexture(Model *model,
+                  std::map<std::string,int> &knownTextures,
+                  const std::string &inFileName,
+                  const std::string &modelPath)
+  {
+    if (inFileName == "")
+      return -1;
+
+    int dotExtensionIndex = inFileName.find_last_of('.');
+    if (dotExtensionIndex == std::string::npos)
+      return -1;
+
+    std::string inFileExtension = inFileName.substr(dotExtensionIndex);
+    if (inFileExtension == ".png" || inFileExtension == ".jpg")
+      return loadTextureImage(model, knownTextures, inFileName, modelPath);
+    else if (inFileExtension == ".ptx")
+      return loadTexturePtex(model, knownTextures, inFileName, modelPath);
+  }
   Model *loadOBJ(const std::string &objFile)
   {
     Model *model = new Model;

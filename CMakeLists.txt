@@ -64,6 +64,13 @@ add_subdirectory(common/glfWindow EXCLUDE_FROM_ALL)
 
 
 # ------------------------------------------------------------------
+# build ptex
+# ------------------------------------------------------------------
+set(ptex_dir ${PROJECT_SOURCE_DIR}/common/3rdParty/ptex/)
+include_directories(${ptex_dir}/include)
+add_subdirectory(${ptex_dir} EXCLUDE_FROM_ALL)
+include_directories(common)
+# ------------------------------------------------------------------
 # and final build rules for the project
 # ------------------------------------------------------------------
 

@@ -170,7 +170,10 @@ namespace osc {
   { /*! for this simple example, this will remain empty */ }
 
   extern "C" __global__ void __anyhit__shadow()
-  { /*! not going to be used */ }
+  {
+      *getPRD<vec3f>() = vec3f(0.f);
+      optixTerminateRay();
+  }
   
   //------------------------------------------------------------------------------
   // miss program that gets called for any ray that did not have a

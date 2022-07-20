@@ -31,7 +31,7 @@ namespace osc {
     glfwTerminate();
   }
 
-  GLFWindow::GLFWindow(const std::string &title)
+  GLFWindow::GLFWindow(const std::string &title, int w, int h)
   {
     glfwSetErrorCallback(glfw_error_callback);
     // glfwInitHint(GLFW_COCOA_MENUBAR, GLFW_FALSE);
@@ -43,7 +43,7 @@ namespace osc {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
       
-    handle = glfwCreateWindow(1200, 800, title.c_str(), NULL, NULL);
+    handle = glfwCreateWindow(w, h, title.c_str(), NULL, NULL);
     if (!handle) {
       glfwTerminate();
       exit(EXIT_FAILURE);
@@ -52,6 +52,7 @@ namespace osc {
     glfwSetWindowUserPointer(handle, this);
     glfwMakeContextCurrent(handle);
     glfwSwapInterval( 1 );
+    this->title = title;
   }
 
   /*! callback for a window resizing event */
@@ -104,8 +105,13 @@ namespace osc {
     glfwSetKeyCallback(handle, glfwindow_key_cb);
     glfwSetCursorPosCallback(handle, glfwindow_mouseMotion_cb);
     
+    std::string filename = "optix-" + std::to_string(width) + 'x' + std::to_string(height) + title + ".txt";
+    counter.init(1000, filename);
     while (!glfwWindowShouldClose(handle)) {
+
+      counter.startFrameTiming();
       render();
+      counter.endFrameTiming();
       draw();
         
       glfwSwapBuffers(handle);
