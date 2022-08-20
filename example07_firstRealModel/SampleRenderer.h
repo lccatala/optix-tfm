@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <chrono>
+
 // our own classes, partly shared between host and device
 #include "CUDABuffer.h"
 #include "LaunchParams.h"
@@ -58,6 +60,8 @@ namespace osc {
 
     /*! set camera to render with */
     void setCamera(const Camera &camera);
+
+    std::chrono::microseconds getAccelBuildTime() { return accelBuildTime; }
   protected:
     // ------------------------------------------------------------------
     // internal helper functions
@@ -145,6 +149,10 @@ namespace osc {
     std::vector<CUDABuffer> indexBuffer;
     //! buffer that keeps the (final, compacted) accel structure
     CUDABuffer asBuffer;
+
+  private:
+    std::chrono::microseconds accelBuildTime{};
+    
   };
 
 } // ::osc

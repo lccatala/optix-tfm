@@ -17,6 +17,9 @@
 #include "SampleRenderer.h"
 // this include may only appear in a single source file:
 #include <optix_function_table_definition.h>
+#include <cuda.h>
+#include <cuda_runtime_api.h>
+#include <chrono>
 
 /*! \namespace osc - Optix Siggraph Course */
 namespace osc {
@@ -69,7 +72,10 @@ namespace osc {
     std::cout << "#osc: creating hitgroup programs ..." << std::endl;
     createHitgroupPrograms();
 
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     launchParams.traversable = buildAccel();
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    accelBuildTime = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     
     std::cout << "#osc: setting up optix pipeline ..." << std::endl;
     createPipeline();

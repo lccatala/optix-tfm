@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <chrono>
+
 // our own classes, partly shared between host and device
 #include "CUDABuffer.h"
 #include "LaunchParams.h"
@@ -58,6 +60,10 @@ namespace osc {
 
     /*! set camera to render with */
     void setCamera(const Camera &camera);
+
+    std::chrono::microseconds getAccelBuildTime() { return accelBuildTime; }
+    std::chrono::microseconds getBLASBuildTime() { return blasBuildTime; }
+    std::chrono::microseconds getTLASBuildTime() { return tlasBuildTime; }
   protected:
     // ------------------------------------------------------------------
     // internal helper functions
@@ -155,6 +161,11 @@ namespace osc {
     std::vector<cudaArray_t>         textureArrays;
     std::vector<cudaTextureObject_t> textureObjects;
     /*! @} */
+
+  private:
+    std::chrono::microseconds accelBuildTime{};
+    std::chrono::microseconds blasBuildTime{};
+    std::chrono::microseconds tlasBuildTime{};
   };
 
 } // ::osc

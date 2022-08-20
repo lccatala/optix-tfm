@@ -21,6 +21,8 @@
 #include "LaunchParams.h"
 #include "Model.h"
 
+#include <chrono>
+
 /*! \namespace osc - Optix Siggraph Course */
 namespace osc {
 
@@ -58,6 +60,8 @@ namespace osc {
 
     /*! set camera to render with */
     void setCamera(const Camera &camera);
+
+    std::chrono::microseconds getAccelBuildTime() { return accelBuildTime; }
   protected:
     // ------------------------------------------------------------------
     // internal helper functions
@@ -155,6 +159,8 @@ namespace osc {
     std::vector<cudaArray_t>         textureArrays;
     std::vector<cudaTextureObject_t> textureObjects;
     /*! @} */
+  private:
+    std::chrono::microseconds accelBuildTime{};
   };
 
 } // ::osc

@@ -70,7 +70,10 @@ namespace osc {
     std::cout << "#osc: creating hitgroup programs ..." << std::endl;
     createHitgroupPrograms();
 
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     launchParams.traversable = buildAccel();
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    accelBuildTime = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     
     std::cout << "#osc: setting up optix pipeline ..." << std::endl;
     createPipeline();
@@ -144,6 +147,7 @@ namespace osc {
   
   OptixTraversableHandle SampleRenderer::buildAccel()
   {
+    std::chrono::high_resolution_clock::time_point startBlas = std::chrono::high_resolution_clock::now();
     const int numMeshes = (int)model->meshes.size();
     vertexBuffer.resize(numMeshes);
     normalBuffer.resize(numMeshes);
@@ -219,6 +223,7 @@ namespace osc {
                  &blasBufferSizes
                  ));
     
+    
     // ==================================================================
     // prepare compaction
     // ==================================================================
@@ -230,10 +235,15 @@ namespace osc {
     emitDesc.type   = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
     emitDesc.result = compactedSizeBuffer.d_pointer();
     
+    std::chrono::high_resolution_clock::time_point endBlas = std::chrono::high_resolution_clock::now();
+    blasBuildTime = std::chrono::duration_cast<std::chrono::microseconds>(endBlas - startBlas);
+
     // ==================================================================
     // execute build (main stage)
     // ==================================================================
     
+    std::chrono::high_resolution_clock::time_point startTlas = std::chrono::high_resolution_clock::now();
+
     CUDABuffer tempBuffer;
     tempBuffer.alloc(blasBufferSizes.tempSizeInBytes);
     
@@ -271,6 +281,9 @@ namespace osc {
                                   asBuffer.sizeInBytes,
                                   &asHandle));
     CUDA_SYNC_CHECK();
+
+    std::chrono::high_resolution_clock::time_point endTlas = std::chrono::high_resolution_clock::now();
+    tlasBuildTime = std::chrono::duration_cast<std::chrono::microseconds>(endTlas - startTlas);
     
     // ==================================================================
     // aaaaaand .... clean up

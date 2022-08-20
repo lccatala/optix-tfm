@@ -15,6 +15,8 @@
 // ======================================================================== //
 
 #include "GLFWindow.h"
+#include <cuda.h>
+#include <cuda_runtime_api.h>
 
 /*! \namespace osc - Optix Siggraph Course */
 namespace osc {
@@ -42,6 +44,7 @@ namespace osc {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
       
     handle = glfwCreateWindow(w, h, title.c_str(), NULL, NULL);
     if (!handle) {
@@ -92,6 +95,28 @@ namespace osc {
     // glfwGetCursorPos(window,&x,&y);
     gw->mouseButton(button,action,mods);
   }
+
+  void writeMemoryUsage(const std::string& filename)
+  {
+    size_t freeBytes;
+    size_t totalBytes;
+    auto cudaStatus = cudaMemGetInfo(&freeBytes, &totalBytes);
+    if (cudaStatus != cudaStatus)
+    {
+      std::cout << "Error running cudaMemGetInfo" << std::endl;
+      exit(1);
+    }
+
+    double freeBytesDouble = (double)freeBytes;
+    double totalBytesDouble = (double)totalBytes;
+    double usedBytes = totalBytesDouble - freeBytesDouble;
+    double usedMegabytes = usedBytes / (1024 * 1024);
+    double totalMegabytes = totalBytes / (1024 * 1024);
+    std::cout << usedMegabytes << '/' << totalMegabytes << std::endl;
+    std::ofstream outputFile(filename);
+    outputFile << usedMegabytes << '\n';
+    outputFile.close();
+  }
   
   void GLFWindow::run()
   {
@@ -105,8 +130,9 @@ namespace osc {
     glfwSetKeyCallback(handle, glfwindow_key_cb);
     glfwSetCursorPosCallback(handle, glfwindow_mouseMotion_cb);
     
-    std::string filename = "optix-" + std::to_string(width) + 'x' + std::to_string(height) + title + ".txt";
-    counter.init(1000, filename);
+    std::string filename = "optix-" + std::to_string(width) + "x" + std::to_string(height) + title;
+    counter.init(1000, filename+"-frametimes.txt");
+    writeMemoryUsage(filename+"-memoryusage.txt");
     while (!glfwWindowShouldClose(handle)) {
 
       counter.startFrameTiming();

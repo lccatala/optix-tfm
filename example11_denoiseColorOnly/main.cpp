@@ -14,6 +14,8 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
+#include <unordered_map>
+
 #include "SampleRenderer.h"
 
 // our helper library for window handling
@@ -25,13 +27,15 @@ namespace osc {
 
   struct SampleWindow : public GLFCameraWindow
   {
-    SampleWindow(const std::string &title,
-                 const Model *model,
-                 const Camera &camera,
-                 const QuadLight &light,
-                 const float worldScale)
-      : GLFCameraWindow(title,camera.from,camera.at,camera.up,worldScale),
-        sample(model,light)
+    SampleWindow(const std::string& title,
+      const Model* model,
+      const Camera& camera,
+      const QuadLight& light,
+      const float worldScale,
+      const int width,
+      const int height)
+      : GLFCameraWindow(title, camera.from, camera.at, camera.up, worldScale, width, height),
+      sample(model, light)
     {
       sample.setCamera(camera);
     }
@@ -139,11 +143,26 @@ namespace osc {
   extern "C" int main(int ac, char **av)
   {
     try {
+      int windowWidth = 1920;
+      int windowHeight = 1080;
+      std::string modelName = "sponza";
+      if (ac >= 4)
+      {
+        windowWidth = atoi(av[1]);
+        windowHeight = atoi(av[2]);
+        modelName = std::string(av[3]);
+      }
+      std::unordered_map<std::string, vec3f> modelCameraOrigins = {
+        {"bmw", {-500.0f, 150.0f, -800.0f} },
+        {"hairball", {10.0f, 15.0f, -10.0f} },
+        {"sponza", {-1293.07f, 154.681f, -0.7304f} },
+        {"triangle", {-1293.07f, 154.681f, -0.7304f} },
+      };
       Model *model = loadOBJ(
 #ifdef _WIN32
       // on windows, visual studio creates _two_ levels of build dir
       // (x86/Release)
-      "../../models/sponza.obj"
+        "../../models/" + modelName + "/" + modelName + ".obj"
 #else
       // on linux, common practice is to have ONE level of build dir
       // (say, <project>/build/)...
@@ -165,8 +184,8 @@ namespace osc {
       // camera knows how much to move for any given user interaction:
       const float worldScale = length(model->bounds.span());
 
-      SampleWindow *window = new SampleWindow("Optix 7 Course Example",
-                                              model,camera,light,worldScale);
+      SampleWindow* window = new SampleWindow(modelName + "-denoisecolor",
+        model, camera, light, worldScale, windowWidth, windowHeight);
       window->enableFlyMode();
       
       std::cout << "Press 'a' to enable/disable accumulation/progressive refinement" << std::endl;

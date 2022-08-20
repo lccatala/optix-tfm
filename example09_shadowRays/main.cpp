@@ -19,6 +19,7 @@
 // our helper library for window handling
 #include "glfWindow/GLFWindow.h"
 #include <GL/gl.h>
+#include <unordered_map>
 
 /*! \namespace osc - Optix Siggraph Course */
 namespace osc {
@@ -28,12 +29,27 @@ namespace osc {
     SampleWindow(const std::string &title,
                  const Model *model,
                  const Camera &camera,
-                 const float worldScale)
-      : GLFCameraWindow(title,camera.from,camera.at,camera.up,worldScale),
+                 const float worldScale,
+                 const int width,
+                 const int height)
+      : GLFCameraWindow(title,camera.from,camera.at,camera.up,worldScale, width, height),
         sample(model)
     {
       sample.setCamera(camera);
     }
+
+    void writeAccelBuildTime(const std::string& filename)
+    {
+      std::ofstream outputFile;
+      outputFile.open(filename+"-blasbuildtime.txt", std::ios::out | std::ios::app);
+      outputFile << sample.getBLASBuildTime().count() << '\n';
+      outputFile.close();
+      
+      outputFile.open(filename + "-tlasbuildtime.txt", std::ios::out | std::ios::app);
+      outputFile << sample.getTLASBuildTime().count() << '\n';
+      outputFile.close();
+    }
+    std::chrono::microseconds getAccelBuildTime() { return sample.getAccelBuildTime(); }
     
     virtual void render() override
     {
@@ -113,26 +129,51 @@ namespace osc {
   extern "C" int main(int ac, char **av)
   {
     try {
+      int windowWidth = 1920;
+      int windowHeight = 1080;
+      std::string modelName = "iscv2";
+      if (ac >= 4)
+      {
+        windowWidth = atoi(av[1]);
+        windowHeight = atoi(av[2]);
+        modelName = std::string(av[3]);
+      }
+      std::unordered_map<std::string, vec3f> modelCameraOrigins = { 
+        {"bmw", {-500.0f, 150.0f, -800.0f} },
+        {"hairball", {10.0f, 15.0f, -10.0f} },
+        {"sponza", {-1293.07f, 154.681f, -0.7304f} },
+        {"triangle", {-1293.07f, 154.681f, -0.7304f} },
+      };
+      //std::string modelName = "human";
+      //std::string modelName = "iscv2";
+      //std::string modelName = "sponza";
+      //std::string modelName = "bmw";
+      //std::string modelName = "gallery";
       Model *model = loadOBJ(
 #ifdef _WIN32
       // on windows, visual studio creates _two_ levels of build dir
       // (x86/Release)
-      "../../models/sponza.obj"
+      "../../models/" + modelName + "/" + modelName + ".obj"
 #else
       // on linux, common practice is to have ONE level of build dir
       // (say, <project>/build/)...
       "../models/sponza.obj"
 #endif
                              );
-      Camera camera = { /*from*/vec3f(-1293.07f, 154.681f, -0.7304f),
-                        /* at */model->bounds.center()-vec3f(0,400,0),
+      vec3f cameraOrigin = { -1293.07f, 154.681f, -0.7304f };
+      if (modelCameraOrigins.count(modelName) != 0)
+        cameraOrigin = modelCameraOrigins.at(modelName);
+      Camera camera = { /*from*/cameraOrigin,
+                        /* at */model->bounds.center(),
                         /* up */vec3f(0.f,1.f,0.f) };
       // something approximating the scale of the world, so the
       // camera knows how much to move for any given user interaction:
       const float worldScale = length(model->bounds.span());
 
-      SampleWindow *window = new SampleWindow("Optix 7 Course Example",
-                                              model,camera,worldScale);
+      SampleWindow *window = new SampleWindow(modelName + "-shadows",
+                                              model,camera,worldScale, windowWidth, windowHeight);
+      window->writeAccelBuildTime("optix-" + std::to_string(windowWidth) + "x" + std::to_string(windowHeight) + modelName + "-shadows");
+      //exit(0);
       window->run();
       
     } catch (std::runtime_error& e) {

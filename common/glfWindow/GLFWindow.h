@@ -66,7 +66,7 @@ namespace osc {
         averageFrameTime /= frameTimes.size();
         outputFile << averageFrameTime << '\n';
         outputFile.close();
-        throw std::exception();
+        exit(0);
       }
     }
 

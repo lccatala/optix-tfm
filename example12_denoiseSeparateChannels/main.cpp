@@ -144,7 +144,7 @@ namespace osc {
     try {
       int windowWidth = 1920;
       int windowHeight = 1080;
-      std::string modelName = "hairball";
+      std::string modelName = "triangle";
       if (ac >= 4)
       {
         windowWidth = atoi(av[1]);
@@ -155,6 +155,8 @@ namespace osc {
         {"bmw", {-500.0f, 150.0f, -800.0f} },
         {"hairball", {10.0f, 15.0f, -10.0f} },
         {"sponza", {-1293.07f, 154.681f, -0.7304f} },
+        {"triangle", {-1293.07f, 154.681f, -0.7304f} },
+        {"quad", {-1293.07f, 154.681f, -0.7304f} },
       };
       //std::string modelName = "human";
       //std::string modelName = "iscv2";
